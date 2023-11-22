@@ -1,8 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { dataSourceOptions } from './db/data-source';
 import { UsersModule } from './users/users.module';
 import { ExpenseGroupsModule } from './expense-groups/expense-groups.module';
@@ -23,7 +21,5 @@ import { ExpenseCategoriesModule } from './expense-categories/expense-categories
     ExpensesModule,
     ExpenseCategoriesModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
 export class AppModule {}
