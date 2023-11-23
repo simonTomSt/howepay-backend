@@ -6,6 +6,7 @@ import { UsersModule } from './users/users.module';
 import { ExpenseGroupsModule } from './expense-groups/expense-groups.module';
 import { ExpensesModule } from './expenses/expenses.module';
 import { ExpenseCategoriesModule } from './expense-categories/expense-categories.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { ExpenseCategoriesModule } from './expense-categories/expense-categories
     ExpenseGroupsModule,
     ExpensesModule,
     ExpenseCategoriesModule,
+    AuthModule,
   ],
 })
 export class AppModule {}
