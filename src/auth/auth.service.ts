@@ -9,6 +9,7 @@ import { UsersService } from 'src/users/users.service';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { JwtPayload, TokensType } from 'types';
+import { createHash } from 'crypto';
 
 @Injectable()
 export class AuthService {
@@ -27,7 +28,7 @@ export class AuthService {
       throw new BadRequestException('Provided email is in use');
     }
 
-    const passwordHash = await this.hash(signUpDto.password);
+    const passwordHash = await this.hashPassword(signUpDto.password);
 
     const user = await this.usersService.create({
       ...signUpDto,
@@ -49,7 +50,10 @@ export class AuthService {
       throw new BadRequestException('Bad credentials');
     }
 
-    const isMatch = await this.compareHash(signInDto.password, user.password);
+    const isMatch = await this.comparePasswordHash(
+      signInDto.password,
+      user.password,
+    );
 
     if (!isMatch) {
       throw new BadRequestException('Bad credentials');
@@ -76,7 +80,7 @@ export class AuthService {
       throw new UnauthorizedException();
     }
 
-    const isMatch = await this.compareHash(refreshToken, user.refreshToken);
+    const isMatch = this.comparTokenHash(refreshToken, user.refreshToken);
 
     if (!isMatch) {
       throw new UnauthorizedException();
@@ -90,16 +94,16 @@ export class AuthService {
 
   async compareUserRefreshToken(userId: string, refreshToken: string) {
     const user = await this.usersService.findOneById(userId);
-    return this.compareHash(refreshToken, user?.refreshToken || '');
+    return this.comparTokenHash(refreshToken, user?.refreshToken || '');
   }
 
-  private compareHash(password: string, hash: string) {
-    return bcrypt.compare(password, hash);
+  private comparePasswordHash(value: string, hash: string) {
+    return bcrypt.compare(value, hash);
   }
 
-  private hash(password: string) {
+  private hashPassword(value: string) {
     const rounds = 12;
-    return bcrypt.hash(password, rounds);
+    return bcrypt.hash(value, rounds);
   }
 
   private async createTokens(
@@ -134,7 +138,18 @@ export class AuthService {
     userId: string,
     refreshToken: string,
   ): Promise<void> {
-    const hash = await this.hash(refreshToken);
+    const hash = this.hashToken(refreshToken);
     await this.usersService.updateById(userId, { refreshToken: hash });
+  }
+
+  private hashToken(token: string) {
+    return createHash('sha256').update(token).digest('hex');
+  }
+
+  private comparTokenHash(token: string, tokenHashToCompare: string) {
+    const tokenHash = createHash('sha256').update(token).digest('hex');
+    console.log(tokenHash, tokenHashToCompare);
+
+    return tokenHash === tokenHashToCompare;
   }
 }
