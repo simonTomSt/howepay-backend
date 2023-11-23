@@ -19,8 +19,8 @@ export class UsersService {
       .getOne();
   }
 
-  findOneById(): any {
-    throw new Error('Method not implemented.');
+  findOneById(id: string): Promise<User> {
+    return this.usersRepository.findOneBy({ id });
   }
 
   create(createUserDto: CreateUserDto): Promise<User> {

@@ -1,5 +1,9 @@
 import * as bcrypt from 'bcrypt';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { SignInDto, SignUpDto } from './dtos';
 import { UsersService } from 'src/users/users.service';
 import { ConfigService } from '@nestjs/config';
@@ -57,11 +61,43 @@ export class AuthService {
     return { ...tokens, ...user };
   }
 
-  compareHash(password: string, hash: string) {
+  signOut(userId: string) {
+    this.usersService.updateById(userId, { refreshToken: null });
+  }
+
+  getMe(userId: string) {
+    return this.usersService.findOneById(userId);
+  }
+
+  async refreshTokens(userId: string, refreshToken: string) {
+    const user = await this.usersService.findOneById(userId);
+
+    if (!user) {
+      throw new UnauthorizedException();
+    }
+
+    const isMatch = await this.compareHash(refreshToken, user.refreshToken);
+
+    if (!isMatch) {
+      throw new UnauthorizedException();
+    }
+
+    const tokens = await this.createTokens(user.id, user.email, user.username);
+    await this.updateUserRefreshToken(user.id, tokens.refresh_token);
+
+    return { ...tokens, ...user };
+  }
+
+  async compareUserRefreshToken(userId: string, refreshToken: string) {
+    const user = await this.usersService.findOneById(userId);
+    return this.compareHash(refreshToken, user?.refreshToken || '');
+  }
+
+  private compareHash(password: string, hash: string) {
     return bcrypt.compare(password, hash);
   }
 
-  hash(password: string) {
+  private hash(password: string) {
     const rounds = 12;
     return bcrypt.hash(password, rounds);
   }

@@ -1,12 +1,10 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { Expose } from 'class-transformer';
 import { UserDto } from 'src/users/dtos';
 
-export class SignedInUser extends UserDto {
-  @IsNotEmpty()
-  @IsString()
+export class SignedInUserDto extends UserDto {
+  @Expose()
   access_token: string;
 
-  @IsNotEmpty()
-  @IsString()
+  @Expose()
   refresh_token: string;
 }

@@ -4,14 +4,19 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  Get,
   UseGuards,
+  ForbiddenException,
+  Request,
 } from '@nestjs/common';
 import { Serialize } from 'src/serialization/serialize.decorator';
 import { AuthService } from './auth.service';
-import { SignUpDto, SignInDto, SignedInUser } from './dtos';
-import { Public } from './decorators';
-import { JwtGuard } from './guards';
+import { SignUpDto, SignInDto, SignedInUserDto } from './dtos';
+import { CurrentUser, Public } from './decorators';
+import { JwtAuthGuard } from './guards';
 import RefreshJwtGuard from './guards/refresh-jwt.guard';
+import { getBearerTokenFromHeaders } from 'src/utils';
+import { Request as ExpressRequest } from 'express';
 
 @Controller('auth')
 export class AuthController {
@@ -19,7 +24,7 @@ export class AuthController {
 
   @Public()
   @Post('/sign-up')
-  @Serialize(SignedInUser)
+  @Serialize(SignedInUserDto)
   @HttpCode(HttpStatus.CREATED)
   async signup(@Body() signUpDto: SignUpDto) {
     return this.authService.signUp(signUpDto);
@@ -27,24 +32,38 @@ export class AuthController {
 
   @Public()
   @Post('/sign-in')
-  @Serialize(SignedInUser)
+  @Serialize(SignedInUserDto)
   @HttpCode(HttpStatus.OK)
   async signIn(@Body() signInDto: SignInDto) {
     return this.authService.signIn(signInDto);
   }
 
   @Post('/sign-out')
-  @UseGuards(JwtGuard)
+  @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
-  async signOut(@Body() signInDto: SignInDto) {
-    return this.authService.signIn(signInDto);
+  async signOut(@CurrentUser('id') currentUserId: string) {
+    return this.authService.signOut(currentUserId);
   }
 
   @Post('/refresh-token')
   @UseGuards(RefreshJwtGuard)
-  @Serialize(SignedInUser)
+  @Serialize(SignedInUserDto)
   @HttpCode(HttpStatus.OK)
-  async refreshToken(@Body() signInDto: SignInDto) {
-    return this.authService.signIn(signInDto);
+  async refreshToken(
+    @Request() req: ExpressRequest,
+    @CurrentUser('id') currentUserId: string,
+  ) {
+    const refreshToken = getBearerTokenFromHeaders(req);
+
+    if (!refreshToken) throw new ForbiddenException('Refresh token malformed');
+
+    return this.authService.refreshTokens(currentUserId, refreshToken);
+  }
+
+  @Get('/me')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async getMe(@CurrentUser('id') currentUserId: string) {
+    return this.authService.getMe(currentUserId);
   }
 }

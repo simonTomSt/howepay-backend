@@ -13,8 +13,8 @@ export const dataSourceOptions: TypeOrmModuleOptions = {
   username: process.env.POSTGRES_USER,
   password: process.env.POSTGRES_PASSWORD,
   database: process.env.POSTGRES_DB,
-  entities: ['dist/**/*.entity{.ts,.js}'],
-  migrations: ['dist/db/migrations/*{.ts,.js}'],
+  entities: ['dist/src/**/*.entity{.ts,.js}'],
+  migrations: ['dist/src/db/migrations/*{.ts,.js}'],
   synchronize: false,
   migrationsRun: process.env.NODE_ENV !== 'dev',
 };
