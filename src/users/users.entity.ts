@@ -24,6 +24,9 @@ export class User {
   @Column({ type: 'varchar', nullable: false, select: false })
   password: string;
 
+  @Column({ type: 'varchar', nullable: true, default: null })
+  refreshToken: string;
+
   @ManyToMany(() => ExpenseGroup)
   expenseGroups: ExpenseGroup[];
 
