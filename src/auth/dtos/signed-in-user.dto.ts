@@ -1,10 +1,13 @@
-import { Expose } from 'class-transformer';
+import { Expose, Type } from 'class-transformer';
 import { UserDto } from 'src/users/dtos';
+import { TokensDto } from './tokens.dto';
 
-export class SignedInUserDto extends UserDto {
+export class SignedInUserDto {
   @Expose()
-  access_token: string;
+  @Type(() => UserDto)
+  user: UserDto;
 
   @Expose()
-  refresh_token: string;
+  @Type(() => TokensDto)
+  tokens: TokensDto;
 }

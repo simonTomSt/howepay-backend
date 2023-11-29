@@ -8,8 +8,9 @@ import { SignInDto, SignUpDto } from './dtos';
 import { UsersService } from 'src/users/users.service';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { JwtPayload, TokensType } from 'types';
+import { JwtPayload } from 'types';
 import { createHash } from 'crypto';
+import { TokensDto } from './dtos/tokens.dto';
 
 @Injectable()
 export class AuthService {
@@ -38,7 +39,7 @@ export class AuthService {
     const tokens = await this.createTokens(user.id, user.email, user.username);
     await this.updateUserRefreshToken(user.id, tokens.refresh_token);
 
-    return { ...tokens, ...user };
+    return { tokens, user };
   }
 
   async signIn(signInDto: SignInDto) {
@@ -62,7 +63,7 @@ export class AuthService {
     const tokens = await this.createTokens(user.id, user.email, user.username);
     await this.updateUserRefreshToken(user.id, tokens.refresh_token);
 
-    return { ...tokens, ...user };
+    return { tokens, user };
   }
 
   signOut(userId: string) {
@@ -110,7 +111,7 @@ export class AuthService {
     userId: string,
     email: string,
     username: string,
-  ): Promise<TokensType> {
+  ): Promise<TokensDto> {
     const jwtPayload: JwtPayload = {
       sub: userId,
       email,
@@ -148,8 +149,6 @@ export class AuthService {
 
   private comparTokenHash(token: string, tokenHashToCompare: string) {
     const tokenHash = createHash('sha256').update(token).digest('hex');
-    console.log(tokenHash, tokenHashToCompare);
-
     return tokenHash === tokenHashToCompare;
   }
 }

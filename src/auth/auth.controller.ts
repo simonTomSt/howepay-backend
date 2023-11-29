@@ -17,6 +17,7 @@ import { JwtAuthGuard } from './guards';
 import RefreshJwtGuard from './guards/refresh-jwt.guard';
 import { getBearerTokenFromHeaders } from 'src/utils';
 import { Request as ExpressRequest } from 'express';
+import { UserDto } from 'src/users/dtos';
 
 @Controller('auth')
 export class AuthController {
@@ -62,6 +63,7 @@ export class AuthController {
 
   @Get('/me')
   @UseGuards(JwtAuthGuard)
+  @Serialize(UserDto)
   @HttpCode(HttpStatus.OK)
   async getMe(@CurrentUser('id') currentUserId: string) {
     return this.authService.getMe(currentUserId);
